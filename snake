@@ -1,0 +1,105 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class NewBehaviourScript : MonoBehaviour
+{
+    private float s = 0.5f;
+    private float boundary =  5f;
+    private float hs = 0.0f;
+    private int size = 0;
+    public GameObject edgeSquare;
+    public GameObject[] es;
+    public GameObject SnakeSquare;
+    public GameObject[] sq;
+    public float delay;
+    private float movetimer;
+    public float[] directions;
+    private int length;
+    public float fooddelay;
+    private float foodtimer;
+    public GameObject food;
+    public GameObject[] foods;
+    public int foodcount;
+    // Start is called before the first frame update
+    void Start()
+    {
+        sq = new GameObject[289];
+        sq[0] = SnakeSquare;
+        foodcount = -1;
+        fooddelay = 5f;
+        length = 0;
+        hs = s * 0.5f;
+        size = 2*Mathf.RoundToInt(boundary/s) - 1;
+        es = new GameObject[4*(2*Mathf.RoundToInt(boundary/s) - 1)];
+        foods = new GameObject[289];
+        directions = new float[289];
+        for(float i=0;i<(float) size;i+=1f){
+            int intI = (int) i;
+            es[intI] = Instantiate (edgeSquare, new Vector3((-boundary + hs + s * i),(boundary - hs),0.0f), Quaternion.identity) as GameObject;
+            es[intI+size] = Instantiate (edgeSquare, new Vector3((boundary - hs),(boundary - hs - i * s),0.0f), Quaternion.identity) as GameObject;
+            es[intI+size * 2] = Instantiate (edgeSquare, new Vector3((boundary - hs - s * i),(-boundary + hs),0.0f), Quaternion.identity) as GameObject;
+            es[intI+size * 3] = Instantiate (edgeSquare, new Vector3((-boundary + hs),(-boundary + hs + s * i),0.0f), Quaternion.identity) as GameObject;
+            StartCoroutine(waiter());
+        }
+        delay = 0.25f;
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        movetimer += Time.deltaTime;
+        foodtimer += Time.deltaTime;
+        if (Input.GetKeyDown("w"))
+        {
+            directions[0] = Mathf.PI * 0.5f;
+        }
+        if (Input.GetKeyDown("a"))
+        {
+            directions[0] = Mathf.PI;
+        }
+        if (Input.GetKeyDown("s"))
+        {
+            directions[0] = Mathf.PI * 1.5f;
+        }
+        if (Input.GetKeyDown("d"))
+        {
+            directions[0] = 0f;
+        }
+
+        if (movetimer > delay)
+        {
+            for(int i=1;i<289;i++){
+            directions[i] = directions[i-1];
+            }
+            SnakeSquare.transform.position = SnakeSquare.transform.position + new Vector3(0.5f * Mathf.Cos(directions[0]),0.5f * Mathf.Sin(directions[0]), 0.0f);
+            movetimer = 0f;
+        }
+        if (foodtimer > fooddelay)
+        {
+            foods[foodcount+1] = Instantiate (food, new Vector3(Random.Range(-9,9)*s + hs, Random.Range(-9,9)*s + hs, 0.0f), Quaternion.identity) as GameObject;
+            foodcount++;
+            foodtimer = 0f;
+        }
+        if(SnakeSquare.transform.position.x == boundary - hs){
+            SnakeSquare.transform.position =new Vector3(-SnakeSquare.transform.position.x + s,SnakeSquare.transform.position.y, 0.0f);
+        } else if (SnakeSquare.transform.position.x == -boundary + hs){
+            SnakeSquare.transform.position =new Vector3(-SnakeSquare.transform.position.x - s,SnakeSquare.transform.position.y, 0.0f);
+        } else if (SnakeSquare.transform.position.y == boundary - hs){
+            SnakeSquare.transform.position =new Vector3(SnakeSquare.transform.position.x,-SnakeSquare.transform.position.y + s, 0.0f);
+        } else if (SnakeSquare.transform.position.y == -boundary + hs){
+            SnakeSquare.transform.position =new Vector3(SnakeSquare.transform.position.x,-SnakeSquare.transform.position.y - s, 0.0f);
+        }
+        for(int i=0;i<foodcount;i++){
+            if(SnakeSquare.transform.position == foods[i].transform.position){
+                foods[i].transform.position = new Vector3(10f,10f,0f);
+                length++;
+                sq[length] = Instantiate (SnakeSquare, new Vector3(SnakeSquare.transform.position.x - 0.5f * Mathf.Cos(directions[0]), SnakeSquare.transform.position.y - 0.5f * Mathf.Sin(directions[0]), 0.0f), Quaternion.identity) as GameObject;
+            }
+        }
+    }
+    IEnumerator waiter(){
+        yield return new WaitForSeconds(1f);
+    }
+
+}
