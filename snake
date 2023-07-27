@@ -5,6 +5,7 @@ using UnityEngine;
 public class NewBehaviourScript : MonoBehaviour
 {
     private float s = 0.5f;
+    private const int SIZE = 17;
     private float boundary =  5f;
     private float hs = 0.0f;
     private int size = 0;
@@ -14,26 +15,25 @@ public class NewBehaviourScript : MonoBehaviour
     public GameObject[] sq;
     public float delay;
     private float movetimer;
-    public float[] directions;
-    private int length;
+    public float direction;
+    public int length;
     public float fooddelay;
-    private float foodtimer;
     public GameObject food;
-    public GameObject[] foods;
     public int foodcount;
+    private float prevdir;
+    private List<int> snakeIndexes = new List<int>();
     // Start is called before the first frame update
     void Start()
     {
         sq = new GameObject[289];
-        sq[0] = SnakeSquare;
-        foodcount = -1;
+        //sq[0] = SnakeSquare;
+        foodcount = 0;
         fooddelay = 5f;
-        length = 0;
+        length = 1;
         hs = s * 0.5f;
         size = 2*Mathf.RoundToInt(boundary/s) - 1;
         es = new GameObject[4*(2*Mathf.RoundToInt(boundary/s) - 1)];
-        foods = new GameObject[289];
-        directions = new float[289];
+        direction = 0f;
         for(float i=0;i<(float) size;i+=1f){
             int intI = (int) i;
             es[intI] = Instantiate (edgeSquare, new Vector3((-boundary + hs + s * i),(boundary - hs),0.0f), Quaternion.identity) as GameObject;
@@ -42,60 +42,95 @@ public class NewBehaviourScript : MonoBehaviour
             es[intI+size * 3] = Instantiate (edgeSquare, new Vector3((-boundary + hs),(-boundary + hs + s * i),0.0f), Quaternion.identity) as GameObject;
             StartCoroutine(waiter());
         }
+        for(int i=0; i<SIZE*SIZE; i++){
+            sq[i] = Instantiate(SnakeSquare, new Vector3(20f,20f,0f), Quaternion.identity) as GameObject;
+        }
+        sq[0].transform.position = new Vector3(0.25f,0.25f,0f);
+        snakeIndexes.Add(0);
         delay = 0.25f;
     }
 
     // Update is called once per frame
     void Update()
     {
+        Vector3 pos = sq[snakeIndexes[length - 1]].transform.position;
         movetimer += Time.deltaTime;
-        foodtimer += Time.deltaTime;
-        if (Input.GetKeyDown("w"))
+        if (Input.GetKeyDown("w") && !(prevdir == Mathf.PI * 1.5f))
         {
-            directions[0] = Mathf.PI * 0.5f;
+            direction = Mathf.PI * 0.5f;
         }
-        if (Input.GetKeyDown("a"))
+        if (Input.GetKeyDown("a") && !(prevdir == 0f))
         {
-            directions[0] = Mathf.PI;
+            direction = Mathf.PI;
         }
-        if (Input.GetKeyDown("s"))
+        if (Input.GetKeyDown("s") && !(prevdir == Mathf.PI * 0.5f))
         {
-            directions[0] = Mathf.PI * 1.5f;
+            direction = Mathf.PI * 1.5f;
         }
-        if (Input.GetKeyDown("d"))
+        if (Input.GetKeyDown("d") && !(prevdir == Mathf.PI))
         {
-            directions[0] = 0f;
+            direction = 0f;
         }
 
         if (movetimer > delay)
         {
-            for(int i=1;i<289;i++){
-            directions[i] = directions[i-1];
+            prevdir = direction;
+            if(sq[snakeIndexes[0]].transform.position.x == boundary - hs - 0.5f && prevdir == 0f){
+                sq[snakeIndexes[length - 1]].transform.position =new Vector3(-boundary + hs + 0.5f,sq[snakeIndexes[0]].transform.position.y, 0.0f);
+            } else if (sq[snakeIndexes[0]].transform.position.x == -boundary + hs + 0.5f && prevdir == Mathf.PI){
+                sq[snakeIndexes[length - 1]].transform.position =new Vector3(boundary - hs - 0.5f,sq[snakeIndexes[0]].transform.position.y, 0.0f);
+            } else if (sq[snakeIndexes[0]].transform.position.y == boundary - hs - 0.5f && prevdir == 0.5f * Mathf.PI){
+                sq[snakeIndexes[length - 1]].transform.position =new Vector3(sq[snakeIndexes[0]].transform.position.x,-boundary + hs + 0.5f, 0.0f);
+            } else if (sq[snakeIndexes[0]].transform.position.y == -boundary + hs + 0.5f && prevdir == 1.5f * Mathf.PI){
+                sq[snakeIndexes[length - 1]].transform.position =new Vector3(sq[snakeIndexes[0]].transform.position.x,boundary - hs - 0.5f, 0.0f);
+            } else{
+                sq[snakeIndexes[length - 1]].transform.position = sq[snakeIndexes[0]].transform.position + new Vector3(0.5f * Mathf.Cos(direction),0.5f * Mathf.Sin(direction), 0.0f);
             }
-            SnakeSquare.transform.position = SnakeSquare.transform.position + new Vector3(0.5f * Mathf.Cos(directions[0]),0.5f * Mathf.Sin(directions[0]), 0.0f);
+            int temp = snakeIndexes[length - 1];
+            snakeIndexes.RemoveAt(length - 1);
+            snakeIndexes.Insert(0, temp);
             movetimer = 0f;
-        }
-        if (foodtimer > fooddelay)
-        {
-            foods[foodcount+1] = Instantiate (food, new Vector3(Random.Range(-9,9)*s + hs, Random.Range(-9,9)*s + hs, 0.0f), Quaternion.identity) as GameObject;
-            foodcount++;
-            foodtimer = 0f;
-        }
-        if(SnakeSquare.transform.position.x == boundary - hs){
-            SnakeSquare.transform.position =new Vector3(-SnakeSquare.transform.position.x + s,SnakeSquare.transform.position.y, 0.0f);
-        } else if (SnakeSquare.transform.position.x == -boundary + hs){
-            SnakeSquare.transform.position =new Vector3(-SnakeSquare.transform.position.x - s,SnakeSquare.transform.position.y, 0.0f);
-        } else if (SnakeSquare.transform.position.y == boundary - hs){
-            SnakeSquare.transform.position =new Vector3(SnakeSquare.transform.position.x,-SnakeSquare.transform.position.y + s, 0.0f);
-        } else if (SnakeSquare.transform.position.y == -boundary + hs){
-            SnakeSquare.transform.position =new Vector3(SnakeSquare.transform.position.x,-SnakeSquare.transform.position.y - s, 0.0f);
-        }
-        for(int i=0;i<foodcount;i++){
-            if(SnakeSquare.transform.position == foods[i].transform.position){
-                foods[i].transform.position = new Vector3(10f,10f,0f);
-                length++;
-                sq[length] = Instantiate (SnakeSquare, new Vector3(SnakeSquare.transform.position.x - 0.5f * Mathf.Cos(directions[0]), SnakeSquare.transform.position.y - 0.5f * Mathf.Sin(directions[0]), 0.0f), Quaternion.identity) as GameObject;
+            bool temp1 = false;
+            for(int i=1;i<length;i++){
+                if(sq[snakeIndexes[0]].transform.position == sq[snakeIndexes[i]].transform.position){
+                    for(int j=1;j<length;j++){
+                        sq[j].transform.position = new Vector3(20f,20f,0f);
+                    }
+                    temp1 = true;
+                    sq[0].transform.position = new Vector3(0.25f,0.25f,0f);
+                    food.transform.position = new Vector3(20f, 20f, 0.0f);
+                    foodcount = 0;
+                    movetimer = 0f;
+                    break;
+                }
             }
+            if(temp1 == true){
+                length = 1;
+                snakeIndexes.Clear();
+                snakeIndexes.Add(0);
+                temp1 = false;
+            }
+        }
+        if(sq[snakeIndexes[0]].transform.position == food.transform.position){
+            food.transform.position = new Vector3(10f,10f,0f);
+            foodcount = 0;
+            length++;
+            sq[length-1].transform.position = pos;
+            snakeIndexes.Add(length-1);
+        }
+        if (foodcount == 0)
+        {
+            bool silly = false;
+            while(!silly){
+                food.transform.position = new Vector3(Random.Range(-9,9)*s + hs, Random.Range(-9,9)*s + hs, 0.0f);
+                for(int i=0;i<length;i++){
+                    if(food.transform.position != sq[snakeIndexes[i]].transform.position){
+                        silly = true;
+                        break;
+                    }
+                }
+            }
+            foodcount++;
         }
     }
     IEnumerator waiter(){
