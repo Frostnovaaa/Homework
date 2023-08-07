@@ -1,0 +1,45 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class NewBehaviourScript : MonoBehaviour
+{
+    public GameObject ptank;
+    public GameObject etank;
+    private float size;
+    public float dir;
+    public float rotspeed;
+    public GameObject ptankb;
+    public GameObject etankb;
+    // 20 * 10 map
+    // Start is called before the first frame update
+    void Start()
+    {
+        size = 0.5f;
+        ptank.transform.position = new Vector3(Random.Range(-9 + size, 9 - size) , Random.Range(-5 + size, 5 - size), 0);
+        etank.transform.position = new Vector3(Random.Range(-9 + size, 9 - size), Random.Range(-5 + size, 5 - size), 0);
+        rotspeed = 2;
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        if (Input.GetKey("a"))
+        {
+            dir += rotspeed * Time.deltaTime;
+            ptank.transform.rotation = Quaternion.Euler(new Vector3(0f, 0f, (180/Mathf.PI) * dir));
+        }else if (Input.GetKey("d"))
+        {
+            dir -= rotspeed * Time.deltaTime;
+            ptank.transform.rotation = Quaternion.Euler(new Vector3(0f, 0f, (180 / Mathf.PI) * dir));
+        }
+        if (Input.GetKey("w"))
+        {
+            ptank.transform.position += new Vector3(Mathf.Cos(dir) * Time.deltaTime, Mathf.Sin(dir) * Time.deltaTime, 0f);
+        }
+        else if (Input.GetKey("s"))
+        {
+            ptank.transform.position -= new Vector3(Mathf.Cos(dir) * Time.deltaTime, Mathf.Sin(dir) * Time.deltaTime, 0f);
+        }
+    }
+}
