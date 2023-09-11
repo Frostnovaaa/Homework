@@ -1,0 +1,66 @@
+import java.io.*;
+import java.util.StringTokenizer;
+class diamonds {
+    public static void main(String[] args) throws IOException {
+        BufferedReader r = new BufferedReader(new FileReader("diamond.in"));
+        PrintWriter pw = new PrintWriter("diamond.out");
+        StringTokenizer st = new StringTokenizer(r.readLine());
+        int N = Integer.parseInt(st.nextToken());
+        int K = Integer.parseInt(st.nextToken());
+        int[] size = new int[N];
+        for(int i=0;i<N;i++){
+            st = new StringTokenizer(r.readLine());
+            size[i] = Integer.parseInt(st.nextToken());
+        }
+        int greatest = 0;
+        for (int i=0;i<N;i++){
+            int[] layer = new int[N];
+            int count = 0;
+            for(int j=0;j<N;j++){
+                if(abs(size[i] - size[j]) <= K){
+                    layer[count] = j;
+                    count++;
+                }
+            }
+            int least = size[layer[0]];
+            for(int k=0;k<count;k++){
+                if(least >= size[layer[k]]){
+                    least = size[layer[k]];
+                }
+            }
+//            System.out.println(least);
+//            for (int m=0;m<count;m++){
+//                System.out.print(size[layer[m]] + " ");
+//            }
+//            System.out.println("");
+            int temp = count;
+            for(int l=0;l<temp;l++){
+                if(layer[l] != -1){
+                    if(least + K < size[layer[l]]){
+                        layer[l] = -1;
+                        count--;
+                    }
+                }
+//                for (int m=0;m<temp;m++){
+//                    if(layer[m] != -1){
+//                        System.out.print(size[layer[m]] + " ");
+//                    }
+//                }
+//                System.out.println("");
+            }
+//            System.out.println("");
+            if(count > greatest){
+                greatest = count;
+            }
+        }
+        pw.println(greatest);
+        pw.close();
+    }
+    static int abs(int x){
+        if(x < 0){
+            return (-x);
+        } else {
+            return x;
+        }
+    }
+}
